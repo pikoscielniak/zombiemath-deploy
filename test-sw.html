@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Service Worker Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .warning { background: #fff3cd; color: #856404; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover { background: #0056b3; }
+        .cache-list {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .cache-item {
+            padding: 5px;
+            margin: 2px 0;
+            font-family: monospace;
+            font-size: 12px;
+            background: #f8f9fa;
+            border-left: 3px solid #007bff;
+            padding-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧟 ZombieMath Service Worker Test</h1>
+    
+    <div id="status"></div>
+    
+    <div>
+        <button onclick="checkServiceWorker()">Check Service Worker</button>
+        <button onclick="listCaches()">List Caches</button>
+        <button onclick="testOffline()">Test Offline Mode</button>
+        <button onclick="clearCaches()">Clear Caches</button>
+        <button onclick="unregisterSW()">Unregister SW</button>
+    </div>
+    
+    <div id="output"></div>
+
+    <script>
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function addOutput(html) {
+            const outputDiv = document.getElementById('output');
+            outputDiv.innerHTML += html;
+        }
+
+        function clearOutput() {
+            document.getElementById('output').innerHTML = '';
+        }
+
+        async function checkServiceWorker() {
+            clearOutput();
+            
+            if (!('serviceWorker' in navigator)) {
+                showStatus('❌ Service Workers not supported in this browser', 'error');
+                return;
+            }
+
+            showStatus('✅ Service Workers are supported', 'success');
+
+            try {
+                const registration = await navigator.serviceWorker.getRegistration();
+                
+                if (registration) {
+                    const sw = registration.active || registration.installing || registration.waiting;
+                    addOutput(`
+                        <div class="cache-list">
+                            <h3>Service Worker Status</h3>
+                            <p><strong>State:</strong> ${sw ? sw.state : 'unknown'}</p>
+                            <p><strong>Script URL:</strong> ${sw ? sw.scriptURL : 'N/A'}</p>
+                            <p><strong>Scope:</strong> ${registration.scope}</p>
+                            <p><strong>Active:</strong> ${registration.active ? '✅' : '❌'}</p>
+                            <p><strong>Installing:</strong> ${registration.installing ? '⏳' : '❌'}</p>
+                            <p><strong>Waiting:</strong> ${registration.waiting ? '⏳' : '❌'}</p>
+                        </div>
+                    `);
+                    showStatus('✅ Service Worker is registered and active', 'success');
+                } else {
+                    showStatus('⚠️ No service worker registered', 'warning');
+                    addOutput(`
+                        <div class="cache-list">
+                            <p>Visit <a href="/">the main app</a> to register the service worker.</p>
+                        </div>
+                    `);
+                }
+            } catch (error) {
+                showStatus(`❌ Error checking service worker: ${error.message}`, 'error');
+            }
+        }
+
+        async function listCaches() {
+            clearOutput();
+            
+            try {
+                const cacheNames = await caches.keys();
+                
+                if (cacheNames.length === 0) {
+                    showStatus('⚠️ No caches found', 'warning');
+                    return;
+                }
+
+                showStatus(`✅ Found ${cacheNames.length} cache(s)`, 'success');
+                
+                for (const cacheName of cacheNames) {
+                    const cache = await caches.open(cacheName);
+                    const requests = await cache.keys();
+                    
+                    addOutput(`
+                        <div class="cache-list">
+                            <h3>📦 ${cacheName}</h3>
+                            <p><strong>Items:</strong> ${requests.length}</p>
+                            ${requests.map(req => `<div class="cache-item">${req.url}</div>`).join('')}
+                        </div>
+                    `);
+                }
+            } catch (error) {
+                showStatus(`❌ Error listing caches: ${error.message}`, 'error');
+            }
+        }
+
+        async function testOffline() {
+            clearOutput();
+            showStatus('🧪 Testing offline functionality...', 'info');
+            
+            try {
+                // Test if index.html is cached
+                const cache = await caches.match('/index.html') || await caches.match('index.html');
+                
+                if (cache) {
+                    showStatus('✅ index.html is cached - offline mode should work!', 'success');
+                    addOutput(`
+                        <div class="cache-list">
+                            <h3>Offline Test Results</h3>
+                            <p>✅ Main HTML is cached</p>
+                            <p>To test offline mode:</p>
+                            <ol>
+                                <li>Open DevTools (F12)</li>
+                                <li>Go to Network tab</li>
+                                <li>Check "Offline" checkbox</li>
+                                <li>Reload the page</li>
+                            </ol>
+                        </div>
+                    `);
+                } else {
+                    showStatus('❌ index.html is NOT cached - offline mode will not work', 'error');
+                    addOutput(`
+                        <div class="cache-list">
+                            <h3>Problem Detected</h3>
+                            <p>The main HTML file is not in the cache.</p>
+                            <p>Possible solutions:</p>
+                            <ul>
+                                <li>Rebuild the app: <code>npm run build</code></li>
+                                <li>Visit the main page first</li>
+                                <li>Wait for service worker to install</li>
+                                <li>Check browser console for errors</li>
+                            </ul>
+                        </div>
+                    `);
+                }
+            } catch (error) {
+                showStatus(`❌ Error testing offline: ${error.message}`, 'error');
+            }
+        }
+
+        async function clearCaches() {
+            if (!confirm('Are you sure you want to clear all caches?')) {
+                return;
+            }
+            
+            clearOutput();
+            
+            try {
+                const cacheNames = await caches.keys();
+                await Promise.all(cacheNames.map(name => caches.delete(name)));
+                showStatus(`✅ Cleared ${cacheNames.length} cache(s)`, 'success');
+                addOutput(`
+                    <div class="cache-list">
+                        <p>All caches have been cleared.</p>
+                        <p>Reload the page to re-cache assets.</p>
+                    </div>
+                `);
+            } catch (error) {
+                showStatus(`❌ Error clearing caches: ${error.message}`, 'error');
+            }
+        }
+
+        async function unregisterSW() {
+            if (!confirm('Are you sure you want to unregister the service worker?')) {
+                return;
+            }
+            
+            clearOutput();
+            
+            try {
+                const registration = await navigator.serviceWorker.getRegistration();
+                if (registration) {
+                    await registration.unregister();
+                    showStatus('✅ Service worker unregistered', 'success');
+                    addOutput(`
+                        <div class="cache-list">
+                            <p>Service worker has been unregistered.</p>
+                            <p>Reload the page to re-register.</p>
+                        </div>
+                    `);
+                } else {
+                    showStatus('⚠️ No service worker to unregister', 'warning');
+                }
+            } catch (error) {
+                showStatus(`❌ Error unregistering service worker: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-check on load
+        window.addEventListener('load', () => {
+            checkServiceWorker();
+        });
+    </script>
+</body>
+</html>

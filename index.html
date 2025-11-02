@@ -2,14 +2,181 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sample HTML Page</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ZombieMath</title>
+    <meta name="description" content="ZombieMath: playful multiplication practice for kids." />
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#6a0dad" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Zombie Math" />
+
+    <!-- Manifest -->
+    <link rel="manifest" href="/assets/manifest-BvYMwwyw.webmanifest" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-32x32.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png" />
+
+  <script type="module" crossorigin src="/assets/index-X5lgmIWX.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-DuzFPFxC.css">
 </head>
 
 <body>
-    <h1>Welcome to the Sample HTML Page</h1>
-    <p>This is a simple HTML page structure.</p>
+    <div>
+        <div id="start-page"></div>
+        <div id="game-page"></div>
+        <div id="game-over-page"></div>
+    </div>
+
+    <!-- Templates -->
+    <template id="start-page-star-template">
+        <div class="star">⭐</div>
+    </template>
+
+    <template id="start-page-moon-template">
+        <div class="moon"></div>
+    </template>
+
+    <template id="start-page-zombie-silhouette-template">
+        <div class="zombie-silhouette"></div>
+    </template>
+
+    <template id="start-page-content-template">
+        <div class="start-content">
+            <div class="game-title">
+                <span class="game-title-icon">🧠</span>
+                <h1>Zombie Math</h1>
+                <span class="game-title-icon">🧟</span>
+            </div>
+            <div class="difficulty-panel">
+                <div class="difficulty-header">🎯 Choose Your Challenge:</div>
+                <div class="difficulty-container"></div>
+                <button class="start-game-button">🎮 Start Adventure! 🎮</button>
+            </div>
+            <div class="instructions">
+                <h3>How to Play:</h3>
+                <ul>
+                    <li>✅ Solve math problems quickly</li>
+                    <li>🧠 Protect your brain from zombies</li>
+                    <li>⭐ Get points for correct answers</li>
+                    <li>🏆 Beat your high score!</li>
+                </ul>
+            </div>
+        </div>
+    </template>
+
+    <template id="start-page-zombie-silhouettes-template">
+        <div class="zombie-silhouettes"></div>
+    </template>
+
+    <!-- Difficulty Level Templates -->
+    <template id="difficulty-select-template">
+        <select id="difficulty-select" class="difficulty-select">
+            <option value="easy">🌱 Easy - One answer kills zombie</option>
+            <option value="medium">🌿 Medium - Two answers kill zombie</option>
+            <option value="hard">🌳 Hard - Three answers kill zombie</option>
+            <option value="very-hard">🌳 Very Hard - Four answers kill zombie</option>
+            <option value="expert">🔥 Expert - Five answers kill zombie</option>
+        </select>
+    </template>
+
+    <!-- Game Page Templates -->
+    <template id="game-header-template">
+        <div class="game-header"></div>
+    </template>
+
+    <template id="game-content-template">
+        <div class="game-content" id="game-content"></div>
+    </template>
+
+    <template id="score-container-template">
+        <div class="score-display">
+            <span class="score-icon">🏆</span>
+        </div>
+    </template>
+
+    <template id="end-game-button-template">
+        <button id="end-game-button">✖ End Game</button>
+    </template>
+
+    <!-- Game Board Templates -->
+    <template id="game-board-template">
+        <div class="game-board"></div>
+    </template>
+
+    <template id="ground-template">
+        <div class="ground"></div>
+    </template>
+
+    <template id="zombie-target-template">
+        <div id="zombie-target" class="hidden"></div>
+    </template>
+
+    <template id="zombie-container-template">
+        <div class="zombie-container">
+            <div class="zombie-walk"></div>
+        </div>
+    </template>
+
+    <!-- Math Problem Template -->
+    <template id="math-problem-template">
+        <div class="math-problem">
+            <div class="math-problem-text"></div>
+        </div>
+    </template>
+
+    <!-- Scoring View Template -->
+    <template id="scoring-view-template">
+        <span id="score" class="hidden">Score: 0</span>
+    </template>
+
+    <!-- Keyboard Templates -->
+    <template id="keyboard-template">
+        <div class="keyboard"></div>
+    </template>
+
+    <template id="keyboard-row-template">
+        <div class="keyboard-row"></div>
+    </template>
+
+    <template id="keyboard-button-template">
+        <button></button>
+    </template>
+
+    <template id="keyboard-actions-template">
+        <div class="keyboard-actions">
+            <button class="keyboard-clear">Clear</button>
+            <button class="keyboard-submit">✖ End Game</button>
+        </div>
+    </template>
+
+    <!-- Game Over Page Templates -->
+    <template id="game-over-container-template">
+        <div class="game-over-container hidden">
+            <h2 class="game-over-title">Game Over!</h2>
+            <div class="game-over-icons">🧟 🎯</div>
+            <div class="score-panel">
+                <div class="score-panel-title">🏆 Your Score 🏆</div>
+                <div class="score-value">0</div>
+            </div>
+            <div class="encouragement">Keep Trying! You'll get better! 💪</div>
+            <div class="star-rating"></div>
+            <div class="game-over-actions">
+                <button class="home-button">🏠 Home</button>
+                <button class="play-again-button">🔄 Play Again!</button>
+            </div>
+            <div class="fun-fact">💡 Fun Fact: Practice 10 minutes daily to improve your math skills!</div>
+        </div>
+    </template>
+
+    <template id="star-rating-star-template">
+        <span class="star-filled">⭐</span>
+    </template>
+
+    <noscript>ZombieMath needs JavaScript enabled to start the zombie battle.</noscript>
 </body>
 
 </html>
